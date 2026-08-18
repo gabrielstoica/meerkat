@@ -2,11 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import {
-  useActiveAccount,
-  useActiveWalletConnectionStatus,
-  useIsAutoConnecting,
-} from "thirdweb/react";
+import { useActiveAccount, useActiveWalletConnectionStatus, useIsAutoConnecting } from "thirdweb/react";
 import { WalletList } from "@/components/wallets/wallet-list";
 import { WalletsHeader } from "@/components/wallets/wallets-header";
 import { useAccountDiscovery } from "@/lib/hooks/useAccountDiscovery";
@@ -21,17 +17,14 @@ export default function WalletsPage() {
 
   const eoa = account?.address as `0x${string}` | undefined;
   const discovery = useAccountDiscovery(eoa);
-  const addresses = useMemo(
-    () => discovery.accounts.map((item) => item.address),
-    [discovery.accounts]
-  );
+  const addresses = useMemo(() => discovery.accounts.map((item) => item.address), [discovery.accounts]);
   const spaceBalances = useSpaceBalances(addresses);
 
-  const isSessionPending =
-    isAutoConnecting || connectionStatus === "unknown" || connectionStatus === "connecting";
+  // Wait only while AutoConnect is active or a wallet is mid-connect.
+  // Do not treat "unknown" alone as pending — without AutoConnect that never clears.
+  const isSessionPending = isAutoConnecting || connectionStatus === "connecting";
 
   useEffect(() => {
-    // Wait for wallet auto-connect before a redirect to /.
     if (isSessionPending) {
       return;
     }
