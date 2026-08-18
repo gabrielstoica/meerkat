@@ -1,0 +1,13 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_jpyc)">
+<path d="M12 24C18.6274 24 24 18.6274 24 12C24 5.37258 18.6274 0 12 0C5.37258 0 0 5.37258 0 12C0 18.6274 5.37258 24 12 24Z" fill="#1D4B82"/>
+<path d="M7.24803 4.488C4.94116 6.16413 3.52803 8.89302 3.52803 12C3.52803 15.107 4.94116 17.8359 7.24803 19.512" stroke="white" stroke-width="1.68" stroke-linecap="round"/>
+<path d="M16.752 4.488C19.0589 6.16413 20.472 8.89302 20.472 12C20.472 15.107 19.0589 17.8359 16.752 19.512" stroke="white" stroke-width="1.68" stroke-linecap="round"/>
+<path d="M8.35205 5.952H11.064L12.024 8.064L12.984 5.952H15.696L13.464 10.152H15.672V11.856H13.152V12.816H15.672V14.52H13.152V18.048H10.896V14.52H8.37605V12.816H10.896V11.856H8.37605V10.152H10.584L8.35205 5.952Z" fill="white"/>
+</g>
+<defs>
+<clipPath id="clip0_jpyc">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs>
+</svg>

@@ -1,33 +1,35 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Fraunces, IBM_Plex_Mono, Source_Sans_3 } from "next/font/google";
 import { Providers } from "@/components/providers";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const display = Fraunces({
+  variable: "--font-fraunces",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const body = Source_Sans_3({
+  variable: "--font-body",
   subsets: ["latin"],
+});
+
+const mono = IBM_Plex_Mono({
+  variable: "--font-mono",
+  subsets: ["latin"],
+  weight: ["400", "500"],
 });
 
 export const metadata: Metadata = {
   title: "Meerkat",
-  description: "Meerkat",
+  description: "View and withdraw from smart wallets you own",
 };
 
 // Root HTML document. Providers wrap every page.
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     // next-themes sets the theme class on the client. Skip the hydration mismatch warning.
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">
+    <html lang="en" suppressHydrationWarning className={`${display.variable} ${body.variable} ${mono.variable} h-full antialiased`}>
+      <body className="flex min-h-full flex-col font-sans">
         <Providers>{children}</Providers>
       </body>
     </html>

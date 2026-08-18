@@ -3,6 +3,7 @@
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useActiveWallet, useDisconnect } from "thirdweb/react";
+import { BrandMark } from "@/components/brand-mark";
 import { Button } from "@/components/ui/button";
 import { shortenAddress } from "@/lib/format";
 
@@ -24,14 +25,21 @@ export function WalletsHeader({ eoa }: WalletsHeaderProps) {
   }, [disconnect, router, wallet]);
 
   return (
-    <header className="border-b">
+    <header className="sticky top-0 z-20 border-b border-border/70 bg-background/75 backdrop-blur-md">
       <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-6">
-        <p className="text-lg font-semibold tracking-tight">Meerkat</p>
+        <BrandMark />
         <div className="flex items-center gap-3">
           {eoa ? (
-            <p className="font-mono text-sm text-muted-foreground">{shortenAddress(eoa)}</p>
+            <p className="hidden rounded-full border border-border/80 bg-card/70 px-3 py-1 font-mono text-xs text-muted-foreground sm:block">
+              {shortenAddress(eoa)}
+            </p>
           ) : null}
-          <Button variant="outline" onClick={onDisconnect} disabled={!wallet}>
+          <Button
+            variant="outline"
+            className="border-border/80 bg-card/60"
+            onClick={onDisconnect}
+            disabled={!wallet}
+          >
             Disconnect
           </Button>
         </div>

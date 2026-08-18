@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WalletBreakdown, hasPositiveTokenBalance } from "@/components/wallets/wallet-breakdown";
 import { WithdrawDialog } from "@/components/wallets/withdraw-dialog";
@@ -61,52 +60,84 @@ export function WalletRow({
   }, [account.address]);
 
   return (
-    <div>
-      <Separator />
+    <div
+      className={cn(
+        "overflow-hidden rounded-2xl border border-border/80 bg-card/70 shadow-[0_18px_50px_-36px_rgba(16,24,32,0.55)] backdrop-blur-sm transition-[border-color,box-shadow]",
+        open && "border-copper/35 shadow-[0_22px_60px_-34px_rgba(184,106,43,0.35)]"
+      )}
+    >
       <Collapsible open={open} onOpenChange={setOpen}>
-        <div className="flex items-center gap-3 py-5">
-          <CollapsibleTrigger
-            render={<Button variant="ghost" size="icon-sm" />}
-            aria-label={open ? "Collapse wallet" : "Expand wallet"}
-          >
-            <ChevronRightIcon className={cn("transition-transform", open && "rotate-90")} />
-          </CollapsibleTrigger>
+        <CollapsibleTrigger
+          render={
+            <div
+              className="flex w-full cursor-pointer items-center gap-3 px-4 py-4 text-left transition-colors hover:bg-mist/30 md:px-5"
+            />
+          }
+          aria-label={open ? "Collapse wallet" : "Expand wallet"}
+        >
+          <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full text-muted-foreground">
+            <ChevronRightIcon
+              className={cn("size-4 transition-transform duration-200", open && "rotate-90")}
+            />
+          </span>
 
-          <div className="flex min-w-0 flex-1 items-center gap-3">
-            <p className="truncate font-mono text-sm">{shortenAddress(account.address)}</p>
-            <Button variant="ghost" size="icon-sm" onClick={onCopy} aria-label="Copy address">
-              <CopyIcon />
-            </Button>
-            {explorerUrl ? (
+          <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+            <div className="flex min-w-0 items-center gap-2">
+              <p className="truncate font-mono text-sm tracking-tight">{shortenAddress(account.address)}</p>
               <Button
                 variant="ghost"
                 size="icon-sm"
-                nativeButton={false}
-                render={<a href={explorerUrl} target="_blank" rel="noreferrer" />}
-                aria-label="Open in block explorer"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  void onCopy();
+                }}
+                aria-label="Copy address"
               >
-                <ExternalLinkIcon />
+                <CopyIcon />
               </Button>
-            ) : null}
-            <Badge variant="secondary">{account.factoryLabel}</Badge>
+              {explorerUrl ? (
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  nativeButton={false}
+                  render={<a href={explorerUrl} target="_blank" rel="noreferrer" />}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                  }}
+                  aria-label="Open in block explorer"
+                >
+                  <ExternalLinkIcon />
+                </Button>
+              ) : null}
+            </div>
+            <Badge
+              variant="secondary"
+              className="w-fit border border-border/70 bg-background/60 font-normal text-muted-foreground"
+            >
+              {account.factoryLabel}
+            </Badge>
           </div>
 
           {isBalancesLoading ? (
-            <Skeleton className="h-5 w-20" />
+            <Skeleton className="h-6 w-24" />
           ) : (
-            <p className="text-sm tabular-nums">{formatUsd(totalUsd)}</p>
+            <p className="font-display text-lg font-semibold tabular-nums tracking-tight text-ink">
+              {formatUsd(totalUsd)}
+            </p>
           )}
-        </div>
+        </CollapsibleTrigger>
 
         <CollapsibleContent>
-          <WalletBreakdown
-            unavailableChainIds={unavailableChainIds}
-            chainBalances={chainBalances}
-            prices={prices}
-            isBalancesLoading={isBalancesLoading}
-            canWithdraw={canWithdraw}
-            onWithdraw={() => setWithdrawOpen(true)}
-          />
+          <div className="border-t border-border/70 bg-background/40 px-4 py-5 md:px-5">
+            <WalletBreakdown
+              unavailableChainIds={unavailableChainIds}
+              chainBalances={chainBalances}
+              prices={prices}
+              isBalancesLoading={isBalancesLoading}
+              canWithdraw={canWithdraw}
+              onWithdraw={() => setWithdrawOpen(true)}
+            />
+          </div>
         </CollapsibleContent>
       </Collapsible>
 

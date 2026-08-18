@@ -4,43 +4,19 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { toUnits } from "thirdweb";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupInput,
-} from "@/components/ui/input-group";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
+import { ChainIcon, TokenIcon } from "@/components/token-icon";
 import { fundedTokensForChain } from "@/components/wallets/wallet-breakdown";
 import type { SpaceChainBalances } from "@/lib/balances";
 import { useWithdrawERC20 } from "@/lib/hooks/useWithdrawERC20";
 import { useWithdrawNative, type WithdrawStatus } from "@/lib/hooks/useWithdrawNative";
 import { SUPPORTED_CHAINS } from "@/lib/thirdweb";
-import {
-  getNativeTokenSymbol,
-  getTokenAddress,
-  getTokenDecimals,
-  isNativeTokenAddress,
-  type SupportedToken,
-} from "@/lib/tokens";
+import { getNativeTokenSymbol, getTokenAddress, getTokenDecimals, isNativeTokenAddress, type SupportedToken } from "@/lib/tokens";
 
 const RECIPIENT_PATTERN = /^0x[a-fA-F0-9]{40}$/;
 // Digits with an optional fraction. This pattern rejects e / E and signs.
@@ -58,9 +34,7 @@ type SelectItemOption = { label: string; value: string | null };
 
 // Picks a network that already has a token balance greater than 0.
 function firstFundedChainId(chainBalances: SpaceChainBalances | undefined): number {
-  const funded = SUPPORTED_CHAINS.find(
-    (chain) => fundedTokensForChain(chainBalances, chain.id).length > 0
-  );
+  const funded = SUPPORTED_CHAINS.find((chain) => fundedTokensForChain(chainBalances, chain.id).length > 0);
   return funded?.id ?? SUPPORTED_CHAINS[0].id;
 }
 
@@ -108,13 +82,7 @@ function parseDecimalUnits(value: string, decimals: number): bigint | null {
 }
 
 // Withdraw form for one smart wallet. Asset options omit zero balances.
-export function WithdrawDialog({
-  open,
-  onOpenChange,
-  spaceAddress,
-  chainBalances,
-  onSuccess,
-}: WithdrawDialogProps) {
+export function WithdrawDialog({ open, onOpenChange, spaceAddress, chainBalances, onSuccess }: WithdrawDialogProps) {
   const nativeWithdraw = useWithdrawNative();
   const erc20Withdraw = useWithdrawERC20();
 
@@ -125,9 +93,7 @@ export function WithdrawDialog({
   const [attempted, setAttempted] = useState(false);
 
   const fundedSymbols = fundedTokensForChain(chainBalances, chainId);
-  const selectedBalance = symbol
-    ? (chainBalances?.[chainId]?.tokens[symbol] ?? "0")
-    : "0";
+  const selectedBalance = symbol ? chainBalances?.[chainId]?.tokens[symbol] ?? "0" : "0";
 
   const networkItems: SelectItemOption[] = SUPPORTED_CHAINS.map((chain) => ({
     label: chain.name ?? `Chain ${chain.id}`,
@@ -135,25 +101,17 @@ export function WithdrawDialog({
   }));
 
   const assetItems: SelectItemOption[] =
-    fundedSymbols.length === 0
-      ? [{ label: "No funded assets", value: null }]
-      : fundedSymbols.map((item) => ({ label: item, value: item }));
+    fundedSymbols.length === 0 ? [{ label: "No funded assets", value: null }] : fundedSymbols.map((item) => ({ label: item, value: item }));
 
   const selectedDecimals = symbol ? getTokenDecimals(symbol) : undefined;
-  const amountUnits =
-    selectedDecimals === undefined || amount.length === 0
-      ? null
-      : parseDecimalUnits(amount, selectedDecimals);
-  const balanceUnits =
-    selectedDecimals === undefined ? null : parseDecimalUnits(selectedBalance, selectedDecimals);
+  const amountUnits = selectedDecimals === undefined || amount.length === 0 ? null : parseDecimalUnits(amount, selectedDecimals);
+  const balanceUnits = selectedDecimals === undefined ? null : parseDecimalUnits(selectedBalance, selectedDecimals);
   const amountNotPositive = amountUnits === null || amountUnits <= BigInt(0);
-  const amountOverBalance =
-    amountUnits !== null && balanceUnits !== null && amountUnits > balanceUnits;
+  const amountOverBalance = amountUnits !== null && balanceUnits !== null && amountUnits > balanceUnits;
   const amountInvalid = amount.length > 0 && (amountNotPositive || balanceUnits === null || amountOverBalance);
   const recipientInvalid = recipient.length > 0 && !RECIPIENT_PATTERN.test(recipient);
   const showAmountError = attempted || amount.length > 0 ? amountInvalid || (attempted && amount.length === 0) : false;
-  const showRecipientError =
-    attempted || recipient.length > 0 ? recipientInvalid || (attempted && recipient.length === 0) : false;
+  const showRecipientError = attempted || recipient.length > 0 ? recipientInvalid || (attempted && recipient.length === 0) : false;
 
   const useNative = symbol !== "" && usesNativeWithdraw(symbol, chainId);
   const activeWithdraw = useNative ? nativeWithdraw : erc20Withdraw;
@@ -255,33 +213,43 @@ export function WithdrawDialog({
         onOpenChange(nextOpen);
       }}
     >
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="border-border/80 bg-card sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Withdraw</DialogTitle>
+          <DialogTitle className="font-display text-2xl">Withdraw</DialogTitle>
           <DialogDescription>Send tokens from this smart wallet to a recipient address.</DialogDescription>
         </DialogHeader>
 
         <FieldGroup>
           <Field>
             <FieldLabel>Network</FieldLabel>
-            <Select
-              items={networkItems}
-              value={String(chainId)}
-              onValueChange={onChainChange}
-              disabled={busy}
-            >
+            <Select items={networkItems} value={String(chainId)} onValueChange={onChainChange} disabled={busy}>
               <SelectTrigger className="w-full">
-                <SelectValue />
+                <SelectValue>
+                  {(value: string | null) => {
+                    const selectedId = Number(value);
+                    const chain = SUPPORTED_CHAINS.find((entry) => entry.id === selectedId);
+                    if (!chain) {
+                      return null;
+                    }
+                    return (
+                      <span className="flex items-center gap-2">
+                        <ChainIcon chainId={chain.id} size={16} />
+                        <span>{chain.name ?? `Chain ${chain.id}`}</span>
+                      </span>
+                    );
+                  }}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent alignItemWithTrigger={false}>
                 <SelectGroup>
-                  {networkItems.map((item) =>
-                    item.value ? (
-                      <SelectItem key={item.value} value={item.value}>
-                        {item.label}
-                      </SelectItem>
-                    ) : null
-                  )}
+                  {SUPPORTED_CHAINS.map((chain) => (
+                    <SelectItem key={chain.id} value={String(chain.id)}>
+                      <span className="flex items-center gap-2">
+                        <ChainIcon chainId={chain.id} size={16} />
+                        <span>{chain.name ?? `Chain ${chain.id}`}</span>
+                      </span>
+                    </SelectItem>
+                  ))}
                 </SelectGroup>
               </SelectContent>
             </Select>
@@ -289,24 +257,33 @@ export function WithdrawDialog({
 
           <Field>
             <FieldLabel>Asset</FieldLabel>
-            <Select
-              items={assetItems}
-              value={symbol || null}
-              onValueChange={onAssetChange}
-              disabled={busy || fundedSymbols.length === 0}
-            >
+            <Select items={assetItems} value={symbol || null} onValueChange={onAssetChange} disabled={busy || fundedSymbols.length === 0}>
               <SelectTrigger className="w-full">
-                <SelectValue />
+                <SelectValue placeholder="No funded assets">
+                  {(value: string | null) => {
+                    if (!value) {
+                      return "No funded assets";
+                    }
+                    const selected = value as SupportedToken;
+                    return (
+                      <span className="flex items-center gap-2">
+                        <TokenIcon symbol={selected} size={16} />
+                        <span>{selected}</span>
+                      </span>
+                    );
+                  }}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent alignItemWithTrigger={false}>
                 <SelectGroup>
-                  {assetItems.map((item) =>
-                    item.value ? (
-                      <SelectItem key={item.value} value={item.value}>
-                        {item.label}
-                      </SelectItem>
-                    ) : null
-                  )}
+                  {fundedSymbols.map((item) => (
+                    <SelectItem key={item} value={item}>
+                      <span className="flex items-center gap-2">
+                        <TokenIcon symbol={item} size={16} />
+                        <span>{item}</span>
+                      </span>
+                    </SelectItem>
+                  ))}
                 </SelectGroup>
               </SelectContent>
             </Select>
@@ -320,24 +297,25 @@ export function WithdrawDialog({
                 inputMode="decimal"
                 autoComplete="off"
                 value={amount}
+                placeholder="0"
                 aria-invalid={showAmountError || undefined}
                 disabled={busy || !symbol}
                 onChange={(event) => setAmount(event.target.value)}
               />
               <InputGroupAddon align="inline-end">
-                <InputGroupButton
-                  onClick={() => setAmount(selectedBalance)}
-                  disabled={busy || !symbol}
-                >
+                <InputGroupButton onClick={() => setAmount(selectedBalance)} disabled={busy || !symbol}>
                   Max
                 </InputGroupButton>
               </InputGroupAddon>
             </InputGroup>
+            {symbol ? (
+              <FieldDescription>
+                Available <span className="font-mono tabular-nums text-foreground">{selectedBalance}</span> {symbol}
+              </FieldDescription>
+            ) : null}
             {showAmountError ? (
               <FieldError>
-                {amount.length === 0 || amountNotPositive
-                  ? "Enter an amount greater than 0."
-                  : "Amount cannot exceed the token balance."}
+                {amount.length === 0 || amountNotPositive ? "Enter an amount greater than 0." : "Amount cannot exceed the token balance."}
               </FieldError>
             ) : null}
           </Field>
@@ -362,7 +340,11 @@ export function WithdrawDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>
             Cancel
           </Button>
-          <Button onClick={() => void onConfirm()} disabled={busy || fundedSymbols.length === 0}>
+          <Button
+            className="bg-copper text-copper-foreground hover:bg-copper/90"
+            onClick={() => void onConfirm()}
+            disabled={busy || fundedSymbols.length === 0}
+          >
             {busy ? <Spinner data-icon="inline-start" /> : null}
             {confirmLabel(status)}
           </Button>
