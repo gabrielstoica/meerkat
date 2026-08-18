@@ -1,6 +1,6 @@
 import { getContract, readContract } from "thirdweb";
 import { STATION_REGISTRY_ADDRESS } from "@/lib/constants";
-import { client, getChain } from "@/lib/thirdweb";
+import { client, withRpcFallback } from "@/lib/thirdweb";
 import type { FactoryAdapter } from "./types";
 
 const GET_ACCOUNTS_OF_SIGNER_ABI = {
@@ -18,16 +18,18 @@ export const stationRegistryAdapter: FactoryAdapter = {
   usesSpaceWithdraw: true,
   // Gets all Space accounts for this EOA on this chain.
   async listAccounts(eoa, chainId) {
-    const contract = getContract({
-      address: STATION_REGISTRY_ADDRESS,
-      chain: getChain(chainId),
-      client,
+    return withRpcFallback(chainId, async (chain) => {
+      const contract = getContract({
+        address: STATION_REGISTRY_ADDRESS,
+        chain,
+        client,
+      });
+      const accounts = await readContract({
+        contract,
+        method: GET_ACCOUNTS_OF_SIGNER_ABI,
+        params: [eoa],
+      });
+      return accounts as `0x${string}`[];
     });
-    const accounts = await readContract({
-      contract,
-      method: GET_ACCOUNTS_OF_SIGNER_ABI,
-      params: [eoa],
-    });
-    return accounts as `0x${string}`[];
   },
 };

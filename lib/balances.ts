@@ -1,12 +1,6 @@
 import { getWalletBalance } from "thirdweb/wallets";
-import { client, SUPPORTED_CHAINS } from "@/lib/thirdweb";
-import {
-  getNativeTokenSymbol,
-  getTokenAddress,
-  getTokensForChain,
-  isNativeTokenAddress,
-  type SupportedToken,
-} from "@/lib/tokens";
+import { client, SUPPORTED_CHAINS, withRpcFallback } from "@/lib/thirdweb";
+import { getNativeTokenSymbol, getTokenAddress, getTokensForChain, isNativeTokenAddress, type SupportedToken } from "@/lib/tokens";
 
 export type ChainBalanceSummary = {
   name: string;
@@ -26,18 +20,20 @@ export async function fetchBalancesForAddress(address: string): Promise<SpaceCha
       try {
         // Read every registry token on this chain. Isolate each token failure so one bad read
         // cannot blank the chain. Omit tokenAddress for the native asset.
+        // Each token read tries RPC providers in order via withRpcFallback.
         const tokenEntries = await Promise.all(
           getTokensForChain(chain.id).map(async (symbol) => {
             const tokenAddress = getTokenAddress(symbol, chain.id);
-            const isNative =
-              symbol === getNativeTokenSymbol(chain.id) || isNativeTokenAddress(tokenAddress);
+            const isNative = symbol === getNativeTokenSymbol(chain.id) || isNativeTokenAddress(tokenAddress);
             try {
-              const balance = await getWalletBalance({
-                address,
-                client,
-                chain,
-                ...(isNative ? {} : { tokenAddress }),
-              });
+              const balance = await withRpcFallback(chain.id, (rpcChain) =>
+                getWalletBalance({
+                  address,
+                  client,
+                  chain: rpcChain,
+                  ...(isNative ? {} : { tokenAddress }),
+                })
+              );
               return [symbol, balance?.displayValue ?? "0", true] as const;
             } catch {
               return [symbol, "0", false] as const;
@@ -45,17 +41,13 @@ export async function fetchBalancesForAddress(address: string): Promise<SpaceCha
           })
         );
 
-        const tokens = tokenEntries.reduce<Partial<Record<SupportedToken, string>>>(
-          (acc, [symbol, value]) => {
-            acc[symbol] = value;
-            return acc;
-          },
-          {}
-        );
+        const tokens = tokenEntries.reduce<Partial<Record<SupportedToken, string>>>((acc, [symbol, value]) => {
+          acc[symbol] = value;
+          return acc;
+        }, {});
 
         // Mark the chain unavailable when it has registry tokens and every read failed.
-        const allReadsFailed =
-          tokenEntries.length > 0 && tokenEntries.every(([, , ok]) => !ok);
+        const allReadsFailed = tokenEntries.length > 0 && tokenEntries.every(([, , ok]) => !ok);
 
         const summary: ChainBalanceSummary = {
           name: chain.name ?? `Chain ${chain.id}`,

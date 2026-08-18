@@ -6,8 +6,9 @@ import {
   waitForReceipt,
   type PreparedTransaction,
 } from "thirdweb";
+import { getRpcClient } from "thirdweb/rpc";
 import type { Account } from "thirdweb/wallets";
-import { client, getChain } from "@/lib/thirdweb";
+import { client, withRpcFallback, type Chain } from "@/lib/thirdweb";
 import { SPACE_EXECUTE_ABI } from "./abis";
 
 export type ExecuteViaSmartWalletParams = {
@@ -15,9 +16,18 @@ export type ExecuteViaSmartWalletParams = {
   chainId: number;
   smartWalletAddress: `0x${string}`;
   innerCall: PreparedTransaction;
-  switchChain: (chain: ReturnType<typeof getChain>) => Promise<void>;
+  switchChain: (chain: Chain) => Promise<void>;
   onStatus?: (status: "switching-chain" | "signing" | "confirming") => void;
 };
+
+// Picks the first RPC provider that answers eth_blockNumber for this chain.
+async function resolveWorkingChain(chainId: number): Promise<Chain> {
+  return withRpcFallback(chainId, async (chain) => {
+    const rpc = getRpcClient({ client, chain });
+    await rpc({ method: "eth_blockNumber" });
+    return chain;
+  });
+}
 
 // Sends a Space.execute self-call from the connected EOA. Does not deploy Spaces. Does not use ERC-4337 UserOps.
 export async function executeViaSmartWallet(
@@ -26,12 +36,13 @@ export async function executeViaSmartWallet(
   const { account, chainId, smartWalletAddress, innerCall, switchChain, onStatus } = params;
 
   onStatus?.("switching-chain");
-  await switchChain(getChain(chainId));
+  const chain = await resolveWorkingChain(chainId);
+  await switchChain(chain);
 
   const data = await encode(innerCall);
   const smartWallet = getContract({
     address: smartWalletAddress,
-    chain: getChain(chainId),
+    chain,
     client,
   });
 
@@ -49,6 +60,7 @@ export async function executeViaSmartWallet(
   const receipt = await waitForReceipt(result);
   return { transactionHash: receipt.transactionHash };
 }
+
 
 // True when the user rejects the wallet prompt (EIP-1193 code 4001).
 export function isUserRejection(error: unknown): boolean {
