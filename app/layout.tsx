@@ -18,10 +18,13 @@ export const metadata: Metadata = {
   description: "Meerkat",
 };
 
+// Root HTML document. Providers wrap every page.
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
+    // next-themes sets the theme class on the client. Skip the hydration mismatch warning.
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">

@@ -49,6 +49,12 @@ export const baseCustom = defineChain({
   ...base,
   rpc: `https://base-mainnet.g.alchemy.com/v2/${ALCHEMY_RPC}`,
   icon: { url: "/assets/symbols/base.svg", width: 20, height: 20, format: "svg" },
+  blockExplorers: [
+    {
+      name: "Basescan",
+      url: "https://basescan.org",
+    },
+  ],
 });
 
 // HyperEVM mainnet with a dedicated Alchemy RPC.
