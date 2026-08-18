@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { toUnits } from "thirdweb";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -42,6 +43,8 @@ import {
 } from "@/lib/tokens";
 
 const RECIPIENT_PATTERN = /^0x[a-fA-F0-9]{40}$/;
+// Digits with an optional fraction. This pattern rejects e / E and signs.
+const DECIMAL_AMOUNT_PATTERN = /^\d+(?:\.\d+)?$/;
 
 type WithdrawDialogProps = {
   open: boolean;
@@ -86,6 +89,24 @@ function isBusy(status: WithdrawStatus): boolean {
   return status === "switching-chain" || status === "signing" || status === "confirming";
 }
 
+// True when this asset must call withdrawNative on the Space.
+function usesNativeWithdraw(symbol: SupportedToken, chainId: number): boolean {
+  const tokenAddress = getTokenAddress(symbol, chainId);
+  return symbol === getNativeTokenSymbol(chainId) || isNativeTokenAddress(tokenAddress);
+}
+
+// Parses a decimal amount into integer token units. Rejects scientific notation.
+function parseDecimalUnits(value: string, decimals: number): bigint | null {
+  if (!DECIMAL_AMOUNT_PATTERN.test(value)) {
+    return null;
+  }
+  try {
+    return toUnits(value, decimals);
+  } catch {
+    return null;
+  }
+}
+
 // Withdraw form for one smart wallet. Asset options omit zero balances.
 export function WithdrawDialog({
   open,
@@ -118,17 +139,26 @@ export function WithdrawDialog({
       ? [{ label: "No funded assets", value: null }]
       : fundedSymbols.map((item) => ({ label: item, value: item }));
 
-  const amountNumber = Number(amount);
-  const balanceNumber = Number(selectedBalance);
-  const amountInvalid =
-    amount.length > 0 && (!Number.isFinite(amountNumber) || amountNumber <= 0 || amountNumber > balanceNumber);
+  const selectedDecimals = symbol ? getTokenDecimals(symbol) : undefined;
+  const amountUnits =
+    selectedDecimals === undefined || amount.length === 0
+      ? null
+      : parseDecimalUnits(amount, selectedDecimals);
+  const balanceUnits =
+    selectedDecimals === undefined ? null : parseDecimalUnits(selectedBalance, selectedDecimals);
+  const amountNotPositive = amountUnits === null || amountUnits <= 0n;
+  const amountOverBalance =
+    amountUnits !== null && balanceUnits !== null && amountUnits > balanceUnits;
+  const amountInvalid = amount.length > 0 && (amountNotPositive || balanceUnits === null || amountOverBalance);
   const recipientInvalid = recipient.length > 0 && !RECIPIENT_PATTERN.test(recipient);
   const showAmountError = attempted || amount.length > 0 ? amountInvalid || (attempted && amount.length === 0) : false;
   const showRecipientError =
     attempted || recipient.length > 0 ? recipientInvalid || (attempted && recipient.length === 0) : false;
 
-  const status: WithdrawStatus =
-    [nativeWithdraw.status, erc20Withdraw.status].find((value) => value !== "idle") ?? "idle";
+  const useNative = symbol !== "" && usesNativeWithdraw(symbol, chainId);
+  const activeWithdraw = useNative ? nativeWithdraw : erc20Withdraw;
+  // Use only the hook for the selected asset. A stale error on the other hook must not hide a busy state.
+  const status: WithdrawStatus = symbol ? activeWithdraw.status : "idle";
   const busy = isBusy(status);
 
   const balancesRef = useRef(chainBalances);
@@ -179,8 +209,6 @@ export function WithdrawDialog({
     }
 
     const tokenAddress = getTokenAddress(symbol, chainId);
-    const useNative =
-      symbol === getNativeTokenSymbol(chainId) || isNativeTokenAddress(tokenAddress);
 
     try {
       if (useNative) {
@@ -236,7 +264,12 @@ export function WithdrawDialog({
         <FieldGroup>
           <Field>
             <FieldLabel>Network</FieldLabel>
-            <Select items={networkItems} value={String(chainId)} onValueChange={onChainChange}>
+            <Select
+              items={networkItems}
+              value={String(chainId)}
+              onValueChange={onChainChange}
+              disabled={busy}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
@@ -260,7 +293,7 @@ export function WithdrawDialog({
               items={assetItems}
               value={symbol || null}
               onValueChange={onAssetChange}
-              disabled={fundedSymbols.length === 0}
+              disabled={busy || fundedSymbols.length === 0}
             >
               <SelectTrigger className="w-full">
                 <SelectValue />
@@ -288,13 +321,13 @@ export function WithdrawDialog({
                 autoComplete="off"
                 value={amount}
                 aria-invalid={showAmountError || undefined}
-                disabled={!symbol}
+                disabled={busy || !symbol}
                 onChange={(event) => setAmount(event.target.value)}
               />
               <InputGroupAddon align="inline-end">
                 <InputGroupButton
                   onClick={() => setAmount(selectedBalance)}
-                  disabled={!symbol}
+                  disabled={busy || !symbol}
                 >
                   Max
                 </InputGroupButton>
@@ -302,7 +335,7 @@ export function WithdrawDialog({
             </InputGroup>
             {showAmountError ? (
               <FieldError>
-                {amount.length === 0 || !Number.isFinite(amountNumber) || amountNumber <= 0
+                {amount.length === 0 || amountNotPositive
                   ? "Enter an amount greater than 0."
                   : "Amount cannot exceed the token balance."}
               </FieldError>
@@ -318,6 +351,7 @@ export function WithdrawDialog({
               value={recipient}
               aria-invalid={showRecipientError || undefined}
               placeholder="0x"
+              disabled={busy}
               onChange={(event) => setRecipient(event.target.value.trim())}
             />
             {showRecipientError ? <FieldError>Enter a valid 0x address.</FieldError> : null}
