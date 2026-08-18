@@ -146,7 +146,7 @@ export function WithdrawDialog({
       : parseDecimalUnits(amount, selectedDecimals);
   const balanceUnits =
     selectedDecimals === undefined ? null : parseDecimalUnits(selectedBalance, selectedDecimals);
-  const amountNotPositive = amountUnits === null || amountUnits <= 0n;
+  const amountNotPositive = amountUnits === null || amountUnits <= BigInt(0);
   const amountOverBalance =
     amountUnits !== null && balanceUnits !== null && amountUnits > balanceUnits;
   const amountInvalid = amount.length > 0 && (amountNotPositive || balanceUnits === null || amountOverBalance);
