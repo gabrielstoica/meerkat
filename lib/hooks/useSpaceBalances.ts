@@ -20,7 +20,7 @@ export function useSpaceBalances(addresses: string[]): UseSpaceBalancesResult {
   const { prices, isLoading: isLoadingPrices } = useUsdPrices();
   const requestIdRef = useRef(0);
 
-  // Stabilise the dependency: only re-fetch when the sorted address list actually changes.
+  // Stabilize the dependency: only re-fetch when the sorted address list actually changes.
   const addressKey = [...addresses].sort().join(",");
 
   const refetch = useCallback(async (nextAddresses: string[]) => {

@@ -18,7 +18,8 @@ export type ChainBalanceSummary = {
 export type SpaceChainBalances = Record<number, ChainBalanceSummary>;
 
 // Fetches native and ERC-20 balances for one address on every supported chain.
-// A failed token read returns "0". A failed chain returns an empty token map with unavailable set.
+// A failed token read returns "0". If every registry token on a chain fails to read,
+// the chain summary sets unavailable. An unexpected throw also sets unavailable.
 export async function fetchBalancesForAddress(address: string): Promise<SpaceChainBalances> {
   const entries = await Promise.all(
     SUPPORTED_CHAINS.map(async (chain) => {
@@ -37,9 +38,9 @@ export async function fetchBalancesForAddress(address: string): Promise<SpaceCha
                 chain,
                 ...(isNative ? {} : { tokenAddress }),
               });
-              return [symbol, balance?.displayValue ?? "0"] as const;
+              return [symbol, balance?.displayValue ?? "0", true] as const;
             } catch {
-              return [symbol, "0"] as const;
+              return [symbol, "0", false] as const;
             }
           })
         );
@@ -52,10 +53,15 @@ export async function fetchBalancesForAddress(address: string): Promise<SpaceCha
           {}
         );
 
+        // Mark the chain unavailable when it has registry tokens and every read failed.
+        const allReadsFailed =
+          tokenEntries.length > 0 && tokenEntries.every(([, , ok]) => !ok);
+
         const summary: ChainBalanceSummary = {
           name: chain.name ?? `Chain ${chain.id}`,
           nativeCurrency: chain.nativeCurrency?.name ?? "Ether",
           tokens,
+          ...(allReadsFailed ? { unavailable: true } : {}),
         };
 
         return [chain.id, summary] as const;
