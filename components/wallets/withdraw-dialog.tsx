@@ -13,6 +13,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { ChainIcon, TokenIcon } from "@/components/token-icon";
 import { fundedTokensForChain } from "@/components/wallets/wallet-breakdown";
 import type { SpaceChainBalances } from "@/lib/balances";
+import { formatTokenAmount } from "@/lib/format";
 import { useWithdrawERC20 } from "@/lib/hooks/useWithdrawERC20";
 import { useWithdrawNative, type WithdrawStatus } from "@/lib/hooks/useWithdrawNative";
 import { SUPPORTED_CHAINS } from "@/lib/thirdweb";
@@ -310,7 +311,7 @@ export function WithdrawDialog({ open, onOpenChange, spaceAddress, chainBalances
             </InputGroup>
             {symbol ? (
               <FieldDescription>
-                Available <span className="font-mono tabular-nums text-foreground">{selectedBalance}</span> {symbol}
+                Available <span className="font-mono tabular-nums text-foreground">{formatTokenAmount(selectedBalance)}</span> {symbol}
               </FieldDescription>
             ) : null}
             {showAmountError ? (

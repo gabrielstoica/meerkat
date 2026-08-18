@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChainIcon, TokenIcon } from "@/components/token-icon";
 import type { SpaceChainBalances } from "@/lib/balances";
-import { formatUsd } from "@/lib/format";
+import { formatTokenAmount, formatUsd } from "@/lib/format";
 import type { UsdPrices } from "@/lib/prices";
 import { SUPPORTED_CHAINS } from "@/lib/thirdweb";
 import { getTokensForChain, type SupportedToken } from "@/lib/tokens";
@@ -106,7 +106,9 @@ export function WalletBreakdown({
                           {symbol}
                         </span>
                       </div>
-                      <span className="font-mono text-sm tabular-nums text-muted-foreground">{balance}</span>
+                      <span className="font-mono text-sm tabular-nums text-muted-foreground">
+                        {formatTokenAmount(balance)}
+                      </span>
                       <span className="min-w-16 text-right text-sm tabular-nums text-ink/90 md:min-w-20">
                         {formatUsd(usd)}
                       </span>
