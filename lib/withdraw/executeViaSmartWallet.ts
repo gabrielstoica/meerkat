@@ -39,7 +39,7 @@ export async function executeViaSmartWallet(
   const transaction = prepareContractCall({
     contract: smartWallet,
     method: SPACE_EXECUTE_ABI,
-    params: [smartWalletAddress, 0n, data],
+    params: [smartWalletAddress, BigInt(0), data],
   });
 
   onStatus?.("signing");
