@@ -31,9 +31,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@ar.io/sdk": "^4.1.5",
     "@ardrive/turbo-sdk": "^1.42.0",
-    "@solana/kit": "^7.1.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -44,5 +42,8 @@
     "tailwindcss": "^4",
     "tweetnacl": "^1.0.3",
     "typescript": "^5"
+  },
+  "resolutions": {
+    "@permaweb/aoconnect": "0.0.68"
   }
 }
