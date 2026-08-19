@@ -5,6 +5,9 @@
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
+    "build:arweave": "ARWEAVE_EXPORT=1 next build",
+    "upload:ar-io-sandbox": "node scripts/upload-ar-io-sandbox.mjs",
+    "buy:arns-sandbox": "node scripts/arns-sandbox/buy.mjs",
     "start": "next start -p 3000",
     "lint": "eslint"
   },
@@ -28,13 +31,18 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@ar.io/sdk": "^4.1.5",
+    "@ardrive/turbo-sdk": "^1.42.0",
+    "@solana/kit": "^7.1.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "bs58": "^6.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.3.1",
     "tailwindcss": "^4",
+    "tweetnacl": "^1.0.3",
     "typescript": "^5"
   }
 }
