@@ -40,3 +40,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ar.io sandbox throwaway signer. Do not commit this file.
+scripts/.ar-io-sandbox-keypair.json
+scripts/arns-sandbox/node_modules
