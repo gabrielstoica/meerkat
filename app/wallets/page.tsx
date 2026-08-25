@@ -35,7 +35,7 @@ export default function WalletsPage() {
 
   if (!account) {
     return (
-      <div className="flex min-h-screen flex-col">
+      <div className="flex flex-1 flex-col">
         <WalletsHeader eoa={eoa} />
         <WalletList
           accounts={[]}
@@ -51,7 +51,7 @@ export default function WalletsPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex flex-1 flex-col">
       <WalletsHeader eoa={account.address} />
       <WalletList
         accounts={discovery.accounts}

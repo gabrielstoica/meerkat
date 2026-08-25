@@ -1,0 +1,9 @@
+{
+  "name": "meerkat-arns-sandbox",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@ar.io/sdk": "4.1.5",
+    "@solana/kit": "7.1.1"
+  }
+}

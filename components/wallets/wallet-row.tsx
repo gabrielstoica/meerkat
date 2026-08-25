@@ -68,6 +68,7 @@ export function WalletRow({
     >
       <Collapsible open={open} onOpenChange={setOpen}>
         <CollapsibleTrigger
+          nativeButton={false}
           render={
             <div
               className="flex w-full cursor-pointer items-center gap-3 px-4 py-4 text-left transition-colors hover:bg-mist/30 md:px-5"
