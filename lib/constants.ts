@@ -1,5 +1,8 @@
 // Shared protocol addresses and cache timings.
 
+// Public source repository for this app.
+export const GITHUB_REPO_URL = "https://github.com/gabrielstoica/meerkat";
+
 // StationRegistry factory address on every supported chain.
 export const STATION_REGISTRY_ADDRESS = "0xf169648a758b767AD6775E2f7eD8337a0aE4685d" as const;
 
