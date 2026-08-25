@@ -6,7 +6,8 @@
     "dev": "next dev -p 3000",
     "build": "next build",
     "build:arweave": "ARWEAVE_EXPORT=1 next build",
-    "upload:ar-io-sandbox": "node scripts/upload-ar-io-sandbox.mjs",
+    "upload:arweave-sandbox": "node scripts/upload-ar-io-sandbox.mjs",
+    "upload:arweave": "node scripts/upload-arweave.mjs",
     "buy:arns-sandbox": "node scripts/arns-sandbox/buy.mjs",
     "start": "next start -p 3000",
     "lint": "eslint"
